@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secret Letters</title>
+  <style>
+    body {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to right, #ff9a9e, #fad0c4);
+        color: #ffffff;
+        padding: 20px;
+    }
+    #content {
+        display: none;
+        margin-top: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .hidden { display: none; }
+    button {
+        background-color: #ff6b81;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #ff4757;
+    }
+    input[type="password"] {
+        padding: 10px;
+        border-radius: 5px;
+        border: none;
+    }
+    #imageGallery img {
+        max-width: 100px;
+        margin: 5px;
+        border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+<h2>Mr. Mangloo aur Miss Angry ke site mein swaagat hai</h2>
+<input type="password" id="passwordInput" placeholder="deh bhi doh zoor se ab" onkeypress="handleKeyPress(event)">
+<button onclick="checkPassword()">Submit</button>
+<p id="error" style="color: red;" class="hidden">Incorrect password!</p>
+
+<div id="content">
+  <h3>Baby, are you ready?</h3>
+  <div id="imageGallery"></div>
+
+  <!-- Add the image gallery link here -->
+  <p>Check it out: <a href="https://drive.google.com/drive/folders/1uTAoxVND9svW6J2qpPdAfFJI9Wrs0YDN?usp=sharing" target="_blank" style="color: #ff9a9e;">Image Gallery</a></p>
+</div>
+
+<script>
+  let db;
+  const request = indexedDB.open("ImageDB", 1);
+
+  request.onupgradeneeded = function(event) {
+      db = event.target.result;
+      if (!db.objectStoreNames.contains("images")) {
+          db.createObjectStore("images", { autoIncrement: true });
+      }
+  };
+
+  request.onsuccess = function(event) {
+      db = event.target.result;
+  };
+
+  function checkPassword() {
+      const password = document.getElementById("passwordInput").value;
+      if (password === "Muwah") {
+          document.getElementById("content").style.display = "block";
+          document.getElementById("error").classList.add("hidden");
+          loadImages();
+      } else {
+          document.getElementById("error").classList.remove("hidden");
+      }
+  }
+
+  function handleKeyPress(event) {
+      if (event.key === "Enter") {
+          checkPassword();
+      }
+  }
+
+  function loadImages() {
+      if (!db) return;
+      const gallery = document.getElementById("imageGallery");
+      gallery.innerHTML = "";
+
+      const transaction = db.transaction(["images"], "readonly");
+      const store = transaction.objectStore("images");
+      const request = store.openCursor();
+
+      request.onsuccess = function(event) {
+          const cursor = event.target.result;
+          if (cursor) {
+              const img = document.createElement("img");
+              const blob = cursor.value;
+              const url = URL.createObjectURL(blob);
+              img.src = url;
+              gallery.appendChild(img);
+              cursor.continue();
+          }
+      };
+  }
+</script>
+</body>
+</html>
